@@ -19,7 +19,11 @@ Only turn-based board games — no real-time or physics simulations:
 
 ## Quick start
 
+On Raspberry Pi / Debian, use a venv (system `pip` is blocked). See [docs/PI_UPDATE.md](docs/PI_UPDATE.md).
+
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e .
 game-hub init-config
 # Edit ~/.game-hub/config.yaml — set openclaw.base_url and openclaw.token
