@@ -54,3 +54,4 @@ Every turn records: `game_id`, `game_type`, `turn_number`, `actor`, `board_state
 
 - [docs/OPENCLAW_AGENT_GUIDE.md](docs/OPENCLAW_AGENT_GUIDE.md)
 - [docs/OPENCLAW_AGENT_PROMPT.md](docs/OPENCLAW_AGENT_PROMPT.md)
+- [docs/PI_UPDATE.md](docs/PI_UPDATE.md) — update after `git pull` on Raspberry Pi

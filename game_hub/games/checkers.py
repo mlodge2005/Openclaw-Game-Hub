@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
+from game_hub.display.board import internal_rank, internal_row_from_rank, render_checkers_board
 from game_hub.game import Game, GameState, MoveResult
 
 
@@ -57,11 +58,8 @@ class Checkers(Game):
         )
 
     def render(self) -> str:
-        lines = [f"Side to play: {self.side_to_play}", "   " + " ".join(str(c) for c in range(8))]
-        for i, row in enumerate(self.board):
-            lines.append(f"{i}  " + " ".join(row))
-        lines.append("Notation: a3-b4 slides, a3xc5 jumps")
-        return "\n".join(lines)
+        """Board for terminal + OpenClaw prompts (matches move notation)."""
+        return render_checkers_board(self.board, human_side=self.human_side)
 
     def strategic_context(self) -> str:
         jumps = [m for m in self.legal_moves() if "x" in m]
@@ -74,13 +72,17 @@ class Checkers(Game):
         if len(token) != 2:
             return None
         col = ord(token[0]) - ord("a")
-        row = int(token[1])
-        if not (0 <= col <= 7 and 0 <= row <= 7):
+        try:
+            rank = int(token[1])
+        except ValueError:
             return None
+        if not (0 <= col <= 7 and 1 <= rank <= 8):
+            return None
+        row = internal_row_from_rank(rank)
         return row, col
 
     def _format_square(self, row: int, col: int) -> str:
-        return f"{chr(ord('a') + col)}{row}"
+        return f"{chr(ord('a') + col)}{internal_rank(row)}"
 
     def _in_bounds(self, row: int, col: int) -> bool:
         return 0 <= row <= 7 and 0 <= col <= 7

@@ -32,6 +32,9 @@ class GameSession:
     chess_mode: str = ChessMode.OPENCLAW.value
     gate: Optional[MoveGate] = None
     openclaw: Optional[OpenClawOpponent] = None
+    _last_move_side: Optional[str] = None
+    _last_move: Optional[str] = None
+    _last_commentary: Optional[str] = None
 
     def __post_init__(self) -> None:
         self.logger.start_game(self.game_id)
@@ -39,18 +42,43 @@ class GameSession:
         if self.opponent_mode == OpponentMode.OPENCLAW:
             self.openclaw = OpenClawOpponent(self.config)
 
-    def header(self) -> str:
-        state = self.game.state()
-        chess_note = f" | chess mode: {self.chess_mode}" if state.game_type == "chess" else ""
-        return (
-            f"\n=== Game Hub | {state.game_type} | ID: {self.game_id} ===\n"
-            f"You: {self.human_side} | OpenClaw: {self.ai_side} ({self.opponent_mode.value}){chess_note}\n"
-        )
+    def _game_title(self) -> str:
+        names = {"checkers": "Checkers", "chess": "Chess", "tictactoe": "Tic-Tac-Toe"}
+        return names.get(self.game.game_type, self.game.game_type.replace("_", " ").title())
+
+    def _opponent_label(self) -> str:
+        if self.opponent_mode == OpponentMode.OPENCLAW:
+            return "OpenClaw"
+        return f"Player ({self.ai_side})"
+
+    def _print_turn_screen(self) -> None:
+        turn = self.game.current_actor()
+        lines = [
+            "",
+            f"=== {self._game_title()} ===",
+            "",
+            f"Game ID: {self.game_id}",
+            f"You: {self.human_side.capitalize()}",
+            f"Opponent: {self._opponent_label()}",
+            "",
+            f"Turn: {turn.capitalize()}",
+            "",
+            self.game.render(),
+            "",
+        ]
+        if self._last_move and self._last_move_side:
+            lines.append("Last Move:")
+            lines.append(f"{self._last_move_side.capitalize()}: {self._last_move}")
+            lines.append("")
+        if self._last_commentary and self.opponent_mode == OpponentMode.OPENCLAW:
+            lines.append("OpenClaw:")
+            lines.append(self._last_commentary)
+            lines.append("")
+        print("\n".join(lines))
 
     def run_interactive(self) -> None:
-        print(self.header())
         while not self.game.is_game_over():
-            print(self.game.render())
+            self._print_turn_screen()
             actor = self.game.current_actor()
 
             if actor == self.human_side:
@@ -61,27 +89,35 @@ class GameSession:
                 if not result.accepted:
                     print(f"Illegal move: {result.rejection_reason}")
                     continue
+                self._last_move_side = actor
+                self._last_move = move
+                self._last_commentary = None
             else:
                 move, commentary = self._get_opponent_move()
                 if move is None:
                     continue
-                if commentary:
-                    print(f"OpenClaw: {commentary}")
-                print(f"Opponent plays: {move}")
-                time.sleep(0.2)
+                self._last_commentary = commentary
                 result = self.gate.propose_move(move, actor, commentary=commentary)  # type: ignore[union-attr]
                 if not result.accepted:
                     print(f"Move rejected by Move Gate: {result.rejection_reason}")
+                    continue
+                self._last_move_side = actor
+                self._last_move = move
+                time.sleep(0.2)
 
-        print(self.game.render())
+        self._print_turn_screen()
         print(f"\nGame over. Result: {self.game.winner() or 'unknown'}")
         path = self._autosave()
         print(f"Saved to {path}")
 
     def _prompt_human_move(self) -> Optional[str]:
         legal = self.game.legal_moves()
-        print(f"Legal moves: {', '.join(legal[:40])}{'...' if len(legal) > 40 else ''}")
-        raw = input("Your move (legal | save | quit): ").strip()
+        if legal:
+            print("Legal Moves:")
+            for i, m in enumerate(legal, start=1):
+                print(f"{i}. {m}")
+            print("")
+        raw = input("Move (e.g. a3-b4, number, save, quit): ").strip()
         if not raw:
             return None
         lower = raw.lower()
@@ -96,6 +132,12 @@ class GameSession:
         if lower == "legal":
             for m in legal:
                 print(m)
+            return None
+        if raw.isdigit():
+            idx = int(raw) - 1
+            if 0 <= idx < len(legal):
+                return legal[idx]
+            print(f"No legal move #{raw}.")
             return None
         return raw
 
