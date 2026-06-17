@@ -2,7 +2,7 @@
 
 A lightweight terminal game hub for Linux (including Raspberry Pi 3B) where **you** play board games against **OpenClaw**.
 
-The hub owns all game state, move validation, logging, saves, and replays. OpenClaw connects over the **Gateway WebSocket API** (direct `ws://` / `wss://` + token — no SSH required on LAN/Tailnet).
+The hub owns all game state, move validation, logging, saves, and replays. OpenClaw connects over the **Gateway HTTP API** (`/v1/chat/completions` + Bearer token — stdlib only, no WebSocket deps).
 
 ## Supported games
 
@@ -22,7 +22,7 @@ Only turn-based board games — no real-time or physics simulations:
 ```bash
 pip install -e .
 game-hub init-config
-# Edit ~/.game-hub/config.yaml — set openclaw.url and openclaw.token
+# Edit ~/.game-hub/config.yaml — set openclaw.base_url and openclaw.token
 game-hub test-connection   # must pass before playing
 game-hub menu
 ```

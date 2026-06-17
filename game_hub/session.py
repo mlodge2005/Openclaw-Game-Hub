@@ -10,7 +10,7 @@ from game_hub.game import Game
 from game_hub.games.chess import ChessMode
 from game_hub.engine.move_gate import MoveGate
 from game_hub.logging.game_logger import GameLogger
-from game_hub.openclaw.errors import OpenClawUnavailable
+from game_hub.openclaw.client import OpenClawUnavailable
 from game_hub.openclaw.opponent import OpenClawOpponent
 from game_hub.storage.save import save_game
 
@@ -113,7 +113,7 @@ class GameSession:
         assert self.openclaw is not None
         while True:
             try:
-                return self.openclaw.request_move_sync(self.game)
+                return self.openclaw.request_move(self.game)
             except OpenClawUnavailable as exc:
                 print(f"\nOpenClaw unavailable: {exc}")
                 choice = input("Retry (r), save and exit (s), quit without save (q): ").strip().lower()
@@ -144,7 +144,7 @@ class GameSession:
         commentary = None
         if self.openclaw:
             try:
-                commentary = self.openclaw.request_commentary_sync(self.game, move, self.ai_side)
+                commentary = self.openclaw.request_commentary(self.game, move, self.ai_side)
             except OpenClawUnavailable:
                 commentary = "(OpenClaw commentary unavailable)"
         return move, commentary

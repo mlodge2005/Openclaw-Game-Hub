@@ -23,8 +23,8 @@ You reason over the position. The hub enforces legality.
 
 ## How the hub reaches you
 
-WebSocket operator client → OpenClaw Gateway → `agent` RPC
-Session key: agent:main:game-hub
+HTTP POST → OpenClaw Gateway /v1/chat/completions → agent (model: openclaw/<agent_id>)
+User identifier: terminal-game-hub
 
 Each turn prompt includes:
 - game_type: tictactoe | checkers | chess
@@ -62,7 +62,7 @@ If rejected: re-read legal_moves, re-analyze, output fresh JSON with a valid mov
 - Pick moves not in legal_moves
 - Act as the rules engine
 
-When you see game-hub prompts in session agent:main:game-hub, respond immediately with strategic JSON.
+When you see Terminal Game Hub prompts from user terminal-game-hub, respond immediately with strategic JSON.
 ```
 
 ---
@@ -72,7 +72,7 @@ When you see game-hub prompts in session agent:main:game-hub, respond immediatel
 Add to `AGENTS.md`, a skill, or prime once:
 
 ```bash
-openclaw agent --agent main --session-key game-hub --message "$(sed -n '/^```$/,/^```$/p' docs/OPENCLAW_AGENT_PROMPT.md)"
+openclaw agent --agent main --message "$(sed -n '/^```$/,/^```$/p' docs/OPENCLAW_AGENT_PROMPT.md)"
 ```
 
 ## Verify
@@ -81,4 +81,4 @@ openclaw agent --agent main --session-key game-hub --message "$(sed -n '/^```$/,
 game-hub test-connection
 ```
 
-Must show: gateway reachable, token accepted, device paired, agent response, JSON parsed.
+Must show: gateway reachable, token accepted, agent response received.

@@ -11,14 +11,22 @@ DEFAULT_DATA_DIR = Path.home() / ".game-hub"
 DEFAULT_CONFIG_PATH = DEFAULT_DATA_DIR / "config.yaml"
 
 
+def _normalize_base_url(url: str) -> str:
+    """Convert legacy ws:// / wss:// URLs to http:// / https://."""
+    url = url.rstrip("/")
+    if url.startswith("ws://"):
+        return "http://" + url[5:]
+    if url.startswith("wss://"):
+        return "https://" + url[6:]
+    return url
+
+
 @dataclass
 class OpenClawConfig:
-    url: str = "ws://127.0.0.1:18789"
+    base_url: str = "http://127.0.0.1:18789"
     token: str = ""
     agent_id: str = "main"
-    session_key: str = "game-hub"
     timeout_seconds: int = 120
-    tls_fingerprint: Optional[str] = None
 
 
 @dataclass
@@ -37,13 +45,15 @@ class HubConfig:
 
 def _merge_openclaw(data: dict[str, Any]) -> OpenClawConfig:
     oc = data.get("openclaw", {}) or {}
+    raw_url = os.environ.get(
+        "OPENCLAW_GATEWAY_URL",
+        oc.get("base_url", oc.get("url", "http://127.0.0.1:18789")),
+    )
     return OpenClawConfig(
-        url=os.environ.get("OPENCLAW_GATEWAY_URL", oc.get("url", "ws://127.0.0.1:18789")),
+        base_url=_normalize_base_url(raw_url),
         token=os.environ.get("OPENCLAW_GATEWAY_TOKEN", oc.get("token", "")),
         agent_id=oc.get("agent_id", "main"),
-        session_key=oc.get("session_key", "game-hub"),
         timeout_seconds=int(oc.get("timeout_seconds", 120)),
-        tls_fingerprint=oc.get("tls_fingerprint"),
     )
 
 
@@ -75,22 +85,19 @@ def save_default_config(path: Optional[Path] = None) -> Path:
 data_dir: ~/.game-hub
 
 openclaw:
-  # Direct WebSocket URL — no SSH tunnel required when gateway is reachable on LAN/Tailnet.
+  # HTTP base URL for the OpenClaw Gateway chat completions API.
   # Examples:
-  #   ws://192.168.1.50:18789
-  #   wss://my-gateway.example.ts.net:18789
-  url: ws://127.0.0.1:18789
+  #   http://192.168.1.50:18789
+  #   https://my-gateway.example.ts.net:18789
+  # Legacy ws:// / wss:// URLs are auto-converted to http:// / https://.
+  base_url: http://127.0.0.1:18789
 
   # Gateway auth token (gateway.auth.token on the OpenClaw host).
   # Can also be set via OPENCLAW_GATEWAY_TOKEN environment variable.
   token: ""
 
   agent_id: main
-  session_key: game-hub
   timeout_seconds: 120
-
-  # Optional: pin TLS cert for wss:// remote gateways
-  # tls_fingerprint: ""
 
 # Path to Stockfish binary (used for chess move generation)
 stockfish_path: stockfish
