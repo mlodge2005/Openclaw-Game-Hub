@@ -1,0 +1,4 @@
+websockets>=12.0
+cryptography>=42.0
+python-chess>=1.999
+PyYAML>=6.0

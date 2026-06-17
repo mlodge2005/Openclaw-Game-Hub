@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terminal-game-hub"
+version = "1.0.0"
+description = "Terminal game hub for Linux — play board games against OpenClaw"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "websockets>=12.0",
+    "cryptography>=42.0",
+    "python-chess>=1.999",
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+game-hub = "game_hub.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["game_hub*"]

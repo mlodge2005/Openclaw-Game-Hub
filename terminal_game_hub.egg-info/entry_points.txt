@@ -1,0 +1,2 @@
+[console_scripts]
+game-hub = game_hub.cli:main

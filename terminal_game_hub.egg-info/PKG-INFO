@@ -1,3 +1,14 @@
+Metadata-Version: 2.4
+Name: terminal-game-hub
+Version: 1.0.0
+Summary: Terminal game hub for Linux — play board games against OpenClaw
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: websockets>=12.0
+Requires-Dist: cryptography>=42.0
+Requires-Dist: python-chess>=1.999
+Requires-Dist: PyYAML>=6.0
+
 # Terminal Game Hub
 
 A lightweight terminal game hub for Linux (including Raspberry Pi 3B) where **you** play board games against **OpenClaw**.
